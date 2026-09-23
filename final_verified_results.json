@@ -1,12 +1,5 @@
 [
     {
-        "company_name": "DEVOPTIMIZE LTD",
-        "company_number": "10687835",
-        "candidate_vat": "267881747",
-        "hmrc_registered_name": null,
-        "status": "RATE_LIMITED"
-    },
-    {
         "company_name": "RAMONRA LTD",
         "company_number": "11639654",
         "candidate_vat": "314660128",
@@ -33,13 +26,6 @@
         "candidate_vat": "144026249",
         "hmrc_registered_name": null,
         "status": "FALSE_CANDIDATE"
-    },
-    {
-        "company_name": "MASCO CONSTRUCTION LTD",
-        "company_number": "14295095",
-        "candidate_vat": "396533753",
-        "hmrc_registered_name": null,
-        "status": "RATE_LIMITED"
     },
     {
         "company_name": "JESSICA LOUISE LTD",
@@ -231,10 +217,115 @@
         "status": "MATCH_CONFIRMED"
     },
     {
+        "company_name": "SPRATT & HAMER LIMITED",
+        "company_number": "05747028",
+        "candidate_vat": "292695750",
+        "hmrc_registered_name": "SPRATT & HAMER LIMITED",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "EARTHLEC LTD",
+        "company_number": "05938789",
+        "candidate_vat": "106438333",
+        "hmrc_registered_name": "EARTHLEC LTD",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "RULESOURCE LTD",
+        "company_number": "06028991",
+        "candidate_vat": "923675507",
+        "hmrc_registered_name": "RULESOURCE LTD",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "KINGDOM METAL FINISHING LIMITED",
+        "company_number": "SC322120",
+        "candidate_vat": "898462752",
+        "hmrc_registered_name": "KINGDOM METAL FINISHING LIMITED",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "LADYBARN SOCIAL CLUB LIMITED",
+        "company_number": "RS009575",
+        "candidate_vat": "147002894",
+        "hmrc_registered_name": "LADYBARN SOCIAL CLUB LIMITED",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "HANDLEY CONSTRUCTION MANAGEMENT LTD",
+        "company_number": "09682432",
+        "candidate_vat": "220595621",
+        "hmrc_registered_name": null,
+        "status": "FALSE_CANDIDATE"
+    },
+    {
+        "company_name": "ACE FABRICATIONS (YORKSHIRE) LTD",
+        "company_number": "12111847",
+        "candidate_vat": "339746068",
+        "hmrc_registered_name": "ACE FABRICATIONS (YORKSHIRE) LTD",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "CERT PROPERTY LIMITED",
+        "company_number": "05869097",
+        "candidate_vat": "876489063",
+        "hmrc_registered_name": "CERT PROPERTY LIMITED",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "CLEAR WATER FLOW LIMITED",
+        "company_number": "14131079",
+        "candidate_vat": "416088987",
+        "hmrc_registered_name": null,
+        "status": "FALSE_CANDIDATE"
+    },
+    {
+        "company_name": "MANWOOD JAMES LTD",
+        "company_number": "11499349",
+        "candidate_vat": "309864180",
+        "hmrc_registered_name": "MANWOOD JAMES LTD",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "OLIVE & COSTA LTD",
+        "company_number": "13250270",
+        "candidate_vat": "437378074",
+        "hmrc_registered_name": null,
+        "status": "FALSE_CANDIDATE"
+    },
+    {
+        "company_name": "LHC BUILDERS LTD",
+        "company_number": "SC531394",
+        "candidate_vat": "241445430",
+        "hmrc_registered_name": "LHC BUILDERS LTD",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "AMALTTHEA LTD",
+        "company_number": "15076153",
+        "candidate_vat": "464378659",
+        "hmrc_registered_name": "AMALTTHEA LTD",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "DEVOPTIMIZE LTD",
+        "company_number": "10687835",
+        "candidate_vat": "267881747",
+        "hmrc_registered_name": "DEVOPTIMIZE LTD",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "MASCO CONSTRUCTION LTD",
+        "company_number": "14295095",
+        "candidate_vat": "396533753",
+        "hmrc_registered_name": null,
+        "status": "FALSE_CANDIDATE"
+    },
+    {
         "company_name": "EVER GEEEN LIMITED",
         "company_number": "13310521",
         "candidate_vat": "408610809",
         "hmrc_registered_name": null,
-        "status": "RATE_LIMITED"
+        "status": "FALSE_CANDIDATE"
     }
 ]

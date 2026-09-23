@@ -24,6 +24,9 @@ ALREADY_VERIFIED = {
         "FALSE_CANDIDATE",
         "UMBERSLADE CORPORATE MANAGEMENT LIMITED DIRECTORS PENSION FUND",
     ),  # wrong entity
+    "DEVOPTIMIZE LTD": ("MATCH_CONFIRMED", "DEVOPTIMIZE LTD"),
+    "MASCO CONSTRUCTION LTD": ("FALSE_CANDIDATE", None),  # HMRC: invalid
+    "EVER GEEEN LIMITED": ("FALSE_CANDIDATE", None),  # HMRC: invalid
 }
 
 
@@ -40,6 +43,10 @@ def run():
         discovered = [d for d in json.load(f) if d.get("candidate_vat")]
 
     results = load_or_init()
+    # RESUME FIX: RATE_LIMITED entries are not actually "done" - drop them so
+    # they get retried (or picked up from ALREADY_VERIFIED) instead of being
+    # skipped forever just because they are already present in the file.
+    results = [r for r in results if r["status"] != "RATE_LIMITED"]
     done_numbers = {r["company_number"] for r in results}
 
     for item in discovered:
