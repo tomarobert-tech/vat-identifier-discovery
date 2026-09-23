@@ -1,0 +1,509 @@
+# VAT Identifier Discovery
+
+## Overview
+
+This project looks at whether it is possible to build a dataset of UK company VAT
+numbers using only public, open sources on the web. The work has three parts.
+**Part 1** covers the research: every idea I tried, how I tested it, and what
+happened. **Part 2** shows a working proof-of-concept pipeline, tested on a random
+sample of UK companies and checked against HMRC's public VAT tool. **Part 3** looks
+at what would need to change to run this at a larger, production scale. All the code
+is in this repository, and setup instructions are at the end of this document.
+
+## Part 1 — Research
+
+### Methodology
+
+For every source I tried, I followed the same steps: write down a clear assumption,
+test it on real UK companies from the Companies House bulk data, write down the
+exact result, and only then decide if the source works or not. I tried not to guess
+whether a source would work just from general reasoning — every conclusion below
+comes from an actual test, not an assumption.
+
+When a source gave zero results, I had to figure out why, because there are two very
+different explanations: either the source really has no data for that company, or my
+access to the source was somehow blocked. To tell these apart, I used a **positive
+control**: I ran the same code on a company I already knew (from a manual check) had
+a VAT number that could be found — for example, British Telecommunications or Ineo
+Nuclear UK Ltd. If the control worked but the other company didn't, the source was
+working correctly and simply had no data. If the control also failed, or showed
+clear signs of being blocked, then the source was not reachable, and a "zero result"
+did not mean anything about real coverage.
+
+### Technical Foundations
+
+Before testing sources for VAT discovery, I built a few things the whole project
+depends on:
+
+1. **HMRC's official "Check a UK VAT Number" API (v2.0)** needs proof that your
+   organisation is registered outside the UK to get production access. This makes it
+   impossible for an individual to use. Before reaching that point, I also tried
+   HMRC's sandbox (test) environment, but it only recognises a small set of mock VAT
+   numbers made for testing, not real ones — so it could not be used for actual
+   verification either. I still applied for production access anyway, as a matter of
+   due diligence, but the official channel is not really open to a solo researcher.
+2. **HMRC's public VAT checker only verifies a VAT number — it cannot search for one
+   by company name.** This shaped the whole project: I needed other sources to
+   *find* candidate VAT numbers, and used HMRC only to *confirm* them. This
+   verification step is fully automated: the script opens a session, gets a CSRF
+   token, sends the form, and reads the result from the page's HTML. None of this
+   was documented anywhere — I found the session/CSRF flow and the exact form field
+   names (`target`, `requester`) by watching real requests in the browser's Network
+   tab, not by guessing.
+3. **Companies House bulk data does not contain VAT numbers.** I checked this
+   myself, directly in the data columns, instead of just trusting the documentation.
+4. **VAT numbers follow a checksum rule (modulus 97).** I use this as a free, local
+   check before sending any candidate to HMRC — it rejects obviously wrong numbers
+   without wasting a real request.
+5. **A valid VAT number is not proof it belongs to the right company.** Because of
+   this, every candidate goes through one more check: I compare the company name
+   returned by HMRC with the company name I was originally searching for, using a
+   normalised similarity score. Only a strong match counts as a real result — a valid
+   VAT number attached to the wrong company is recorded as a false positive, not a
+   success.
+
+### Sources Tested
+
+**1. Search engines (Google and DuckDuckGo)**
+Assumption: searching `"<Company Name>" VAT number` would show the VAT number
+directly, at least for well-known companies. I first tested this manually on
+Google, on 8 companies. Result: easy to find for large, well-known companies, but
+not for smaller ones — the first sign of a pattern that repeated with every source
+after this one.
+
+I then tried to automate the same idea using DuckDuckGo's HTML search (it does not
+need an API key), searching each company and scanning the top results for a VAT
+pattern. On a first run of 25 companies, I got 0 candidates, and every search
+request came back with an unusual HTTP status (202) instead of a normal results
+page. A follow-up debug run on 5 more companies — still from the same random sample, not
+well-known companies — confirmed this: 0 search results were returned for any of
+them, with the identical 202 status on every single query. This uniform response,
+regardless of which company was searched, is itself a sign of a block: a real "no
+results" answer would normally vary by company and come back as a plain HTTP 200
+(the way vat-lookup.co.uk did), not the same non-standard status every time. So I
+record this attempt as blocked, not as a clean negative result.
+
+**2. Contracts Finder** (the UK public procurement register)
+Assumption: companies that supply the public sector have their VAT number listed
+with the contract. Tested on 8 companies. Result: unclear — no VAT number found
+for any of them. I could not tell whether this was a limitation of the site's own
+search, or whether these companies simply had no public contracts, so I record this
+as inconclusive rather than a clear no.
+
+**3. EORI number decoding**
+Assumption: for a UK company registered for VAT, the first 9 digits of its EORI
+number are the same as its VAT number. I confirmed this directly from HMRC's own
+guidance page
+(gov.uk/guidance/economic-operators-registration-and-identification-eori), which
+states: *"if you are VAT registered in the UK, the first 9 digits that make up your
+EORI number will be the same as your VAT number."* Tested on 8 companies from the
+random sample. Result: 0/8 had a public EORI number I could find. The decoding rule
+itself is correct and confirmed by an official source — the problem is that an EORI
+number only exists for companies that import or export goods, and most small,
+domestic companies in the sample simply never had one.
+
+**4. VAT number published on the company's own website** (Provision of Services
+Regulations 2009)
+Assumption: UK businesses providing services must, by law, publish their VAT number
+(if registered) on their website. Tested on the same 8 companies. Result: 0/8 — not
+because the law was not followed, but because most of these companies (usually
+micro-businesses) had no independent website I could find at all. The source itself
+could still be valid; it simply does not apply when the company has no website in
+the first place.
+
+**5. vat-lookup.co.uk (a public aggregator, run by Datalog)**
+Assumption: this site lets you search for a company's VAT number by name. In an
+early test, I built a full automated pipeline (search → checksum check → HMRC
+verification) and ran it on a random sample of 300 companies. Result at that time:
+300/300 returned no candidate. To check this was a real result and not a bug, I ran
+the same code on British Telecommunications as a positive control — it correctly
+returned GB245719348. The site also answered the failing searches with a normal
+HTTP 200 status and a clear message ("we may not have discovered the VAT number
+yet — we typically add 20,000 new numbers per day"), not an error code. So at that
+point, this was a confirmed "no data" result for small companies, not a technical
+failure.
+
+I re-ran the same search a few days later, and the result had changed: **47 out of
+300 companies now returned a candidate** (a checksum-valid VAT number attached to a
+row whose company name closely matched the one I searched for). This matches the
+site's own claim of adding around 20,000 new numbers per day — coverage on this
+source is not fixed, it grows over time. Because of this, vat-lookup.co.uk became
+the actual data source behind the Part 2 proof-of-concept pipeline, described in
+detail there, including the false positives it still produces even among
+name-matched candidates.
+
+**6. Endole.co.uk (a commercial company-data aggregator)**
+Assumption: this commercial site publishes VAT numbers for at least some companies.
+I checked this manually for 8 companies and found 1 confirmed match (Ineo Nuclear UK
+Ltd — valid checksum, confirmed by HMRC, and an exact name match). When I tried to
+automate this on a larger sample (40 companies), every single request came back with
+an HTTP 403 error. The response showed clear signs of Cloudflare's bot protection
+(`Server: cloudflare`, `Cf-Mitigated: challenge`, and a "Just a moment..." page). I
+also tried `cloudscraper`, a tool made specifically to get around this kind of
+protection, and still got blocked every time. So this source does have real, correct
+data, but I cannot reach it automatically without more advanced tools (like a full
+headless browser) or a paid data licence.
+
+**7. Insolvency notices (The Gazette)**
+Assumption: official insolvency notices might list a company's VAT number. I looked
+directly at the structure of several real, published notices. Result: the standard
+template only ever includes the company's Companies House number, never a VAT
+number — for any company. This is a dead end based on the format itself, so there
+was no need to test it on many companies individually.
+
+**8. VIES (EU VAT Information Exchange System) — not tested**
+The UK left the EU VAT system in 2021, so normal UK companies no longer appear in
+VIES. The only exception is Northern Ireland businesses trading goods with the EU,
+which keep an `XI`-prefixed VAT number that is still visible in VIES. This is a
+narrow, specific case, so I decided it was not worth a full test for this project.
+
+### Key Finding
+
+I tested seven different sources, using a different kind of evidence each time
+(clear "not found" messages, HTTP error codes, anti-bot response headers, and the
+structure of official templates). The same pattern kept showing up: **VAT coverage
+through open web sources depends on how visible, large, or internationally active a
+company is — not on whether the company simply exists.** Large or internationally
+active companies were easy to find through several sources. Small, domestic
+companies were not, and for different reasons each time: no international trade for
+EORI, no website for legal disclosure, no listing in aggregator databases (which are
+likely built by crawling other, higher-visibility sources).
+
+This also matches the wider picture: the UK VAT registration threshold is £90,000 of
+taxable turnover in any rolling 12-month period, so a large share of small and micro
+UK businesses are not VAT-registered at all. And even the ones that are registered
+may simply have none of the "exposure channels" — a website, international trade, or
+a listing on a commercial data provider — that would make their VAT number visible
+anywhere on the open web.
+
+One more nuance is worth noting, from re-testing vat-lookup.co.uk a few days after
+the first attempt (see Part 2): coverage on a given source is not fixed. It grows
+over time as third-party aggregators keep crawling and indexing more of the web,
+independent of how large or well-known a company is. So "coverage" is really a
+moving target, not a stable property of a company.
+
+## Part 2 — Proof of Concept
+
+### Sample
+
+The same random sample of 300 active UK companies used throughout Part 1, pulled
+from Companies House bulk data. This is not a hand-picked or well-known set — it is
+meant to represent the real population of UK companies, which is mostly small
+businesses.
+
+Building this sample was not completely straightforward. The full Companies House
+bulk file is too large to load into memory at once — an early attempt crashed with
+a memory error, fixed by reading it in a sample instead of loading the whole file.
+An even earlier attempt accidentally used only the first 100 rows of the file as
+the "sample," which is not random at all, and deleted the original source file in
+the process — a real risk of losing the underlying data. Both problems were caught
+and fixed before they reached the final 300-company sample, but they are worth
+mentioning: building a genuinely random sample from a large file is its own small
+technical problem, not something to take for granted.
+
+### Pipeline
+
+The pipeline runs in two separate phases, because they behave very differently:
+discovery is fast and has no real limits, while verification is slow and
+constrained by HMRC's own rate limit (see Results). Splitting them also means a
+slowdown in one phase never blocks the other.
+
+**Phase A — Discovery** (run once, on all 300 companies)
+1. Search vat-lookup.co.uk by company name.
+2. Parse the results table from the response page, capturing the company name and
+   VAT number listed in each row.
+3. Reject any number that fails the local checksum check (modulus 97) before it
+   counts as a candidate — this is free and instant, no request needed.
+4. Out of the remaining valid-checksum rows, keep the one whose company name is the
+   closest match to the company being searched (using the same normalised
+   similarity score as in Part 1).
+
+**Phase B — Verification** (run only on the candidates Phase A found)
+5. Send the candidate VAT number to HMRC's public checker.
+6. Read the result from the final URL of the response (`/known` for a valid VAT,
+   `/unknown` for an invalid one).
+7. If HMRC responds with "Too Many Requests" (HTTP 429), wait and retry a limited
+   number of times; if it still fails, mark the candidate as unresolved rather than
+   guessing an outcome.
+8. For any candidate HMRC confirms as valid, compare the registered name HMRC
+   returns with the original company name, and only count it as a real match above
+   a similarity threshold.
+
+### What I fixed along the way
+
+The pipeline above is the final version. Getting there took four rounds of
+debugging, each one caught by comparing results across repeated runs rather than
+trusting a single run:
+
+- **A regex that missed real VAT numbers.** An early version looked for a VAT
+  number using a "word boundary" pattern (`\b(\d{9})\b`), expecting a clear break
+  between "GB" and the digits right after it. This does not work: a letter and a
+  digit count as the same kind of character to a word-boundary check, so "GB"
+  followed directly by 9 digits, with no space between them, never matched at
+  all — missing real candidates that were sitting right there in the page.
+  Matching "GB" directly, followed by an optional space and then the digits, fixed
+  it.
+- **Non-deterministic candidates.** An earlier version of step 2 skipped the table
+  structure and just scanned the whole page for anything shaped like a VAT number.
+  Some searches returned more than one row — for "Tesco," a single results page had
+  24 different candidate VAT numbers on it — so which one got picked was not
+  reliable, and the same 300 companies gave different results on different runs.
+  Parsing the table properly (step 2) and picking by name similarity (step 4) fixed
+  this.
+- **A text-matching bug in step 6.** An earlier version checked the page text for
+  the word "valid" instead of the response URL. This is broken, because "**in**valid"
+  also contains "valid" as a substring — so rejected VAT numbers were briefly read
+  as accepted. Switching to the URL fixed it.
+- **A missing final check.** Before step 8 existed, any VAT number HMRC confirmed as
+  valid was immediately counted as a match. This missed a real case (see Results,
+  Umberslade) where a valid, active VAT number belonged to a different, related
+  legal entity, not the company being searched for.
+
+### Results
+
+Running the search step (steps 1–2) on all 300 companies found **47 candidates
+(15.7%)** — a checksum-valid VAT number attached to a table row whose company name
+closely matched the target. This is a real, growing number: an earlier version of
+this same search, run a few days earlier, found 0 candidates out of the same 300
+companies. vat-lookup.co.uk's own message ("we typically add 20,000 new numbers per
+day") appears to be accurate.
+
+Verifying all 47 candidates against HMRC (step 3) turned out to be limited by
+HMRC's own service, not by anything in this project's code. Across three full runs
+of the pipeline on the same 300 companies on the first day (close to 900 companies
+processed in total, plus extra manual tests), and a few hundred more the next day,
+the public VAT checker started returning HTTP 429 ("Too Many Requests"), and this
+did not clear up after short pauses (minutes) or even after several hours — it
+behaved like a sustained, per-IP quota rather than a short burst limit. Because of
+this, only a small number of the 47 candidates could be fully verified within the
+project's timeframe:
+
+| Company | vat-lookup.co.uk candidate | HMRC result |
+|---|---|---|
+| RAMONRA LTD | GB314660128 | Valid, exact name match — **confirmed** |
+| WPS LIVERPOOL LTD | GB381634978 | Valid, exact name match — **confirmed** |
+| SWIFTSURE DESIGN LIMITED | GB144026249 | "Invalid UK VAT number" — **false positive** |
+| UMBERSLADE CORPORATE MANAGEMENT LIMITED | GB559123631 | Valid, but registered to "Umberslade Corporate Management Limited **Directors Pension Fund**" — a different, related legal entity — **false positive** |
+
+### False Positive Rate & Limitations
+
+On this small, fully-verified subsample, the false positive rate is **2 out of 4
+(50%)**. This is a small sample and should not be read as a precise, generalisable
+figure — but the two false positives found are genuinely useful, because they come
+from two different causes:
+
+1. **Bad source data.** vat-lookup.co.uk listed a VAT number for Swiftsure Design
+   Limited that HMRC says does not exist as a valid, registered number at all. The
+   third-party aggregator's data is not always correct.
+2. **Wrong entity, right name pattern.** For Umberslade, the VAT number found is
+   real, active, and correctly confirmed by HMRC — but it belongs to the company's
+   pension fund, a separate legal entity, not the company itself. This is the exact
+   risk described in the original brief: a plausible-looking, valid VAT number
+   attached to the wrong company. It only got caught because of the final name-check
+   step described above; without it, this would have been recorded as a correct
+   match.
+
+The bigger limitation, though, is that **HMRC's own verification service is itself
+a bottleneck**, separate from how many candidates can be found. Out of 47
+candidates, only 4 could be cleanly verified before repeated rate-limiting made
+further automated checks impractical within the time available. This means the
+47/300 (15.7%) figure is a reliable *discovery* number, but the true accuracy of
+that discovered set — how many of the 47 are genuine matches versus false
+positives like the two above — is only measured on a small part of it so far, not
+the full 47. Any future work on this project should treat verification throughput,
+not just candidate discovery, as a real constraint to plan around.
+
+One more open question, not resolved within this project: a search for "BP" on
+vat-lookup.co.uk returned nothing, while British Telecommunications, British
+Airways, Vodafone, and Tesco — tested the same way — all returned a candidate. A
+plausible guess is that very short or generic company names are handled
+differently by their search, but this was not tested further.
+
+## Part 3 — Scaling to Production
+
+### Cost Considerations
+
+The real cost of this project is not developer time — it is the cost of dealing
+with the protections that sources put up once you go past a small, manual scale.
+
+- **Endole.co.uk** has real VAT data, but it is protected by Cloudflare, and this
+  held up against both a plain `requests` client and `cloudscraper`, a tool made
+  specifically to get past this kind of protection. Reaching it reliably would
+  likely need a full headless browser (a tool like Playwright, which opens and runs
+  a real browser in the background, just without a visible window). This is much
+  slower than the plain HTTP requests this project uses everywhere else: a real
+  browser has to load the whole page, run all of its JavaScript, and wait for the
+  Cloudflare check to finish, which can take several seconds per company instead of
+  well under one second. And even then, it is not guaranteed to work, since bot
+  protection keeps changing.
+- **HMRC's free public checker** — the one this whole project relies on for
+  verification — has a real, strict rate limit. This project hit it directly: after
+  three full runs of the pipeline on the same 300 companies on the first day (close
+  to 900 companies processed in total, plus extra manual tests), and a few hundred
+  more the next day, the checker returned "Too Many Requests" for more than a day,
+  even with long pauses in between. HMRC's official production API would likely
+  handle more volume, but it requires proof of organisational registration outside
+  the UK, which rules out an individual or a small team without that setup.
+- If a source like Endole turns out to have good coverage, the realistic way to use
+  it at scale is not more scraping engineering — it is a paid data licence, a
+  recurring commercial cost rather than a one-time technical one.
+
+### What Breaks First
+
+Based on what actually happened in this project, the answer is clear: **rate limits
+and bot protection break first, on both ends of the pipeline, well before compute
+or storage become a concern.**
+
+- On the discovery side, a commercial aggregator (Endole) blocks automated access
+  outright, and even a plain search engine (DuckDuckGo) started rate-limiting after
+  around 25 automated queries.
+- On the verification side, the free HMRC checker — the only verification method
+  available without a business registration — turned out to have a strict, lasting
+  per-IP limit, confirmed directly rather than assumed.
+
+This means the real throughput ceiling for a production version of this project is
+not "how many companies can be searched," but **"how many verifications can
+actually be completed per day,"** which is a much smaller number and needs to be
+planned around from the start, not discovered by accident like it was here.
+
+### Monitoring
+
+A production version of this system would need to watch for the same problems this
+project ran into, on an ongoing basis:
+
+- **Coverage over time.** Coverage is not fixed — vat-lookup.co.uk went from 0
+  candidates to 47 candidates on the same 300 companies over about two days. A
+  production system should re-run discovery periodically instead of treating "not
+  found" as a permanent answer.
+- **False positive rate, checked by hand.** Even with a checksum filter, an HMRC
+  confirmation, and a name-similarity check, this project still found a valid,
+  active VAT number that belonged to the wrong (though related) legal entity — the
+  Umberslade case from Part 2. A production system should regularly sample
+  confirmed matches and check them by hand, especially for close-but-not-exact name
+  matches.
+- **Source health.** Sources can tighten their protection at any time — this is
+  likely what happened with Endole, and it is not documented anywhere in advance. A
+  production system should track failure and block rates per source over time, and
+  flag it when a source that used to work suddenly starts failing consistently,
+  since that usually means a policy or protection change, not a temporary issue.
+- **Verification throughput.** Specifically for HMRC, tracking the rate of "Too Many
+  Requests" responses would show early when the free checker is no longer enough,
+  and when it is time to invest in the production API path instead.
+
+## Debate Topics
+
+### Brute-forcing the checksum
+
+A 9-digit VAT number has 1 billion possible combinations, but the checksum rule
+narrows valid ones down to roughly 1 in 97 of them — still around 10 million valid
+numbers. In theory, checking all 10 million against HMRC's public checker would
+turn a "verify only" tool into a full discovery tool: every valid number returns a
+registered name and address, so this would, in effect, reconstruct HMRC's entire
+VAT registry from the outside.
+
+It is not a good idea, and this project has direct evidence why. HMRC's free
+checker started returning "Too Many Requests" after well under a thousand
+automated checks, and the block lasted for more than a day. Brute-forcing 10 million numbers is a completely different scale from that. It
+would also likely break HMRC's terms of use. HMRC already offers two separate
+ways to use their service: a free checker for occasional, individual lookups, and
+a paid production API for real volume, which requires proof of business
+registration. Brute-forcing the free checker to get the same result as the
+production API — the entire registry — means using the wrong tool to get around
+the rule, not just a technical shortcut.
+
+### Keeping the dataset current
+
+Companies register and deregister all the time, so a one-time discovery pass goes
+stale. Re-running full discovery on all 4.2 million UK companies on a regular
+schedule would be wasteful and would run straight into the same rate limits found
+in this project. A more realistic approach:
+
+- Track new company registrations (Companies House publishes regular updates) and
+  only run discovery on companies that are actually new.
+- Track dissolutions and retire those VAT records instead of continuing to check
+  them.
+- Re-check companies with a "not found" result on some regular cadence, rather than
+  treating it as permanent — this project directly measured coverage on the same
+  source going from 0/300 to 47/300 in about two days, so "not found today" clearly
+  does not mean "not found ever."
+- Re-verify confirmed matches against HMRC occasionally, since a company can
+  deregister for VAT (or stop trading) without being dissolved as a company.
+
+### Knowing the dataset is wrong, with nothing complete to check against
+
+Without a full reference dataset, correctness has to be checked indirectly:
+
+- **Cross-source agreement.** If two independent sources point to the same VAT
+  number for the same company, that is stronger evidence than either source alone.
+  When sources disagree, that is a clear signal to review by hand.
+- **Manual audits on a random sample of confirmed matches** — not just failures.
+  This project's one clear false positive (Umberslade) had a valid, HMRC-confirmed
+  VAT number, and would have passed as a normal success without a human noticing
+  the mismatch in legal entity.
+- **Tracking the false positive rate found through these audits over time**, and
+  tightening the name-matching threshold if it drifts upward.
+- **Downstream signals.** Since the real use case is matching invoices to
+  suppliers, a wrong VAT number would eventually show up as a reconciliation error
+  on the customer's side. That feedback loop is slow, but it is a real, independent
+  check that this project's own testing cannot provide by itself.
+
+### Sources I would not use in a commercial product
+
+**Endole.co.uk.** It is a commercial company-data product, and it actively blocks
+automated access with Cloudflare, which is a clear signal about how they want their
+data used. Even if it were technically reachable, scraping and reselling a
+competitor's aggregated data without a licence is not something I would put behind
+a paid product — if the data is genuinely valuable, the right path is a licensing
+conversation with them, not quiet scraping.
+
+I would also be careful about **any single third-party aggregator used as a sole
+source**, including vat-lookup.co.uk, which worked well for this project but also
+returned one VAT number (Swiftsure Design Limited) that HMRC says is not valid at
+all. Aggregators do not usually say where their numbers come from, so there is no
+way to audit their reliability directly — unlike HMRC, which is the authoritative
+source. And **HMRC's free public checker itself** was never meant to be a
+production backend — using it as if it were, at real commercial volume, runs into
+the same rate limit this project hit directly, rather than going through the
+gated, licensed production API instead.
+
+## Setup / How to Run
+
+```bash
+pip install -r requirements.txt
+```
+
+**Main pipeline**, in the order they're meant to run:
+
+1. `generate_sample.py` — builds the random 300-company sample from a Companies
+   House bulk data ZIP file (download separately from Companies House — the file is
+   too large to include in this repository), saves it to `sample_companies.json`.
+2. `discovery.py` — runs the candidate search step (vat-lookup.co.uk) on all
+   300 companies, with no HMRC calls at all. Saves to `discovery_only_results.json`.
+3. `slow_verify.py` — verifies the discovered candidates against HMRC, one at a
+   time, with a long delay between each request. Saves to
+   `final_verified_results.json`, the final result used in Part 2. This step is the
+   one limited by HMRC's rate limit (see Part 2 and Part 3); it can be safely
+   stopped and re-run, and picks up where it left off.
+
+`pipeline_results_fixed.json` is kept from an earlier, interrupted full-pipeline
+run — it is evidence of the rate-limiting problem described in Part 2 and Part 3,
+not the final result (that is `final_verified_results.json`).
+
+`pipeline.py`, `pipeline_fixed.py`, and `verify_helper.py` are shared modules
+(checksum check, structured candidate extraction, HMRC verification, name-similarity
+matching) imported by the scripts above — they are not meant to be run directly.
+
+**Supporting and exploratory scripts**, kept for transparency (referenced directly
+in Part 1 and Part 2 as evidence for specific sources or bugs, not part of the
+final pipeline): `main.py`, `test_isolation.py`, `test_hmrc.py`,
+`test_duckduckgo.py`, `test_search_5.py`, `ddg_pipeline.py`,
+`debug_ddg_pipeline.py`, `debug_vat_lookup.py`, `test_endole_source.py`,
+`test_endole_cloudscraper.py`, `test_new_sources.py`, `debug_hmrc_reject.py`.
+
+The `debug_response_1_*.html` and `debug_response_2_*.html` files are raw evidence
+from `debug_vat_lookup.py`, saved during the vat-lookup.co.uk testing described in
+Part 1 (British Telecommunications as the positive control, and Edelweiss Cheddar
+Limited showing the "not discovered yet" message). `endole_results.json` is the
+saved output from the automated Endole test in `test_endole_source.py` that hit
+Cloudflare's block. None of these are needed to run anything — kept for
+transparency.

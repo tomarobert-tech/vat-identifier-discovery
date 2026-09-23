@@ -1,0 +1,198 @@
+[
+    {
+        "company_name": "EDELWEISS (CHEDDAR) LIMITED",
+        "company_number": "04394136",
+        "candidate_vat": null,
+        "hmrc_registered_name": null,
+        "status": "NO_CANDIDATE"
+    },
+    {
+        "company_name": "PNM CONSULTING SERVICES LTD",
+        "company_number": "12226874",
+        "candidate_vat": null,
+        "hmrc_registered_name": null,
+        "status": "NO_CANDIDATE"
+    },
+    {
+        "company_name": "MUCKY TRUCKS LTD.",
+        "company_number": "04245496",
+        "candidate_vat": null,
+        "hmrc_registered_name": null,
+        "status": "NO_CANDIDATE"
+    },
+    {
+        "company_name": "SHEPPEYMART LTD",
+        "company_number": "17420836",
+        "candidate_vat": null,
+        "hmrc_registered_name": null,
+        "status": "NO_CANDIDATE"
+    },
+    {
+        "company_name": "SUSSEX UNIVERSITY DEVELOPMENTS LIMITED",
+        "company_number": "00998560",
+        "candidate_vat": null,
+        "hmrc_registered_name": null,
+        "status": "NO_CANDIDATE"
+    },
+    {
+        "company_name": "RD CREATIVE HOLDINGS LTD",
+        "company_number": "16350635",
+        "candidate_vat": null,
+        "hmrc_registered_name": null,
+        "status": "NO_CANDIDATE"
+    },
+    {
+        "company_name": "MARYAMINA PROPERTIES LIMITED",
+        "company_number": "12715755",
+        "candidate_vat": null,
+        "hmrc_registered_name": null,
+        "status": "NO_CANDIDATE"
+    },
+    {
+        "company_name": "TAJ PM LTD",
+        "company_number": "16010060",
+        "candidate_vat": null,
+        "hmrc_registered_name": null,
+        "status": "NO_CANDIDATE"
+    },
+    {
+        "company_name": "DEVOPTIMIZE LTD",
+        "company_number": "10687835",
+        "candidate_vat": "267881747",
+        "hmrc_registered_name": null,
+        "status": "RATE_LIMITED"
+    },
+    {
+        "company_name": "RAMONRA LTD",
+        "company_number": "11639654",
+        "candidate_vat": "314660128",
+        "hmrc_registered_name": null,
+        "status": "RATE_LIMITED"
+    },
+    {
+        "company_name": "BSW (WIMBORNE) LIMITED",
+        "company_number": "09931220",
+        "candidate_vat": null,
+        "hmrc_registered_name": null,
+        "status": "NO_CANDIDATE"
+    },
+    {
+        "company_name": "LOCAL SHOP DALRY LTD LTD",
+        "company_number": "SC847496",
+        "candidate_vat": null,
+        "hmrc_registered_name": null,
+        "status": "NO_CANDIDATE"
+    },
+    {
+        "company_name": "ON TRACK DISTRIBUTIONS LTD",
+        "company_number": "17381524",
+        "candidate_vat": null,
+        "hmrc_registered_name": null,
+        "status": "NO_CANDIDATE"
+    },
+    {
+        "company_name": "P B SOUTH WEST LTD",
+        "company_number": "14725936",
+        "candidate_vat": null,
+        "hmrc_registered_name": null,
+        "status": "NO_CANDIDATE"
+    },
+    {
+        "company_name": "PRO G LTD",
+        "company_number": "17143554",
+        "candidate_vat": null,
+        "hmrc_registered_name": null,
+        "status": "NO_CANDIDATE"
+    },
+    {
+        "company_name": "GREENS HORTICULTURE LTD",
+        "company_number": "06521725",
+        "candidate_vat": null,
+        "hmrc_registered_name": null,
+        "status": "NO_CANDIDATE"
+    },
+    {
+        "company_name": "JOE MERCER GARDEN MAINTENANCE LTD",
+        "company_number": "14824614",
+        "candidate_vat": null,
+        "hmrc_registered_name": null,
+        "status": "NO_CANDIDATE"
+    },
+    {
+        "company_name": "UMBERSLADE CORPORATE MANAGEMENT LIMITED",
+        "company_number": "01001885",
+        "candidate_vat": "559123631",
+        "hmrc_registered_name": null,
+        "status": "RATE_LIMITED"
+    },
+    {
+        "company_name": "WPS LIVERPOOL LTD",
+        "company_number": "12072268",
+        "candidate_vat": "381634978",
+        "hmrc_registered_name": null,
+        "status": "RATE_LIMITED"
+    },
+    {
+        "company_name": "SWIFTSURE DESIGN LIMITED",
+        "company_number": "08195008",
+        "candidate_vat": "144026249",
+        "hmrc_registered_name": null,
+        "status": "RATE_LIMITED"
+    },
+    {
+        "company_name": "ATCO PHARMA LTD",
+        "company_number": "16040435",
+        "candidate_vat": null,
+        "hmrc_registered_name": null,
+        "status": "NO_CANDIDATE"
+    },
+    {
+        "company_name": "MASCO CONSTRUCTION LTD",
+        "company_number": "14295095",
+        "candidate_vat": "396533753",
+        "hmrc_registered_name": null,
+        "status": "RATE_LIMITED"
+    },
+    {
+        "company_name": "HANDYMOS LTD",
+        "company_number": "16748839",
+        "candidate_vat": null,
+        "hmrc_registered_name": null,
+        "status": "NO_CANDIDATE"
+    },
+    {
+        "company_name": "UK AGON GROUP LIMITED",
+        "company_number": "15855336",
+        "candidate_vat": null,
+        "hmrc_registered_name": null,
+        "status": "NO_CANDIDATE"
+    },
+    {
+        "company_name": "BUTTERBRÛLÉE LTD",
+        "company_number": "13186036",
+        "candidate_vat": null,
+        "hmrc_registered_name": null,
+        "status": "NO_CANDIDATE"
+    },
+    {
+        "company_name": "JESSICA LOUISE LTD",
+        "company_number": "11701885",
+        "candidate_vat": "314849588",
+        "hmrc_registered_name": null,
+        "status": "RATE_LIMITED"
+    },
+    {
+        "company_name": "LAWLS LTD",
+        "company_number": "16770345",
+        "candidate_vat": null,
+        "hmrc_registered_name": null,
+        "status": "NO_CANDIDATE"
+    },
+    {
+        "company_name": "AUTOPARTS4LESS LTD",
+        "company_number": "11807006",
+        "candidate_vat": "316014742",
+        "hmrc_registered_name": null,
+        "status": "RATE_LIMITED"
+    }
+]

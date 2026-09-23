@@ -1,0 +1,240 @@
+[
+    {
+        "company_name": "DEVOPTIMIZE LTD",
+        "company_number": "10687835",
+        "candidate_vat": "267881747",
+        "hmrc_registered_name": null,
+        "status": "RATE_LIMITED"
+    },
+    {
+        "company_name": "RAMONRA LTD",
+        "company_number": "11639654",
+        "candidate_vat": "314660128",
+        "hmrc_registered_name": "RAMONRA LTD",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "UMBERSLADE CORPORATE MANAGEMENT LIMITED",
+        "company_number": "01001885",
+        "candidate_vat": "559123631",
+        "hmrc_registered_name": "UMBERSLADE CORPORATE MANAGEMENT LIMITED DIRECTORS PENSION FUND",
+        "status": "FALSE_CANDIDATE"
+    },
+    {
+        "company_name": "WPS LIVERPOOL LTD",
+        "company_number": "12072268",
+        "candidate_vat": "381634978",
+        "hmrc_registered_name": "WPS LIVERPOOL LTD",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "SWIFTSURE DESIGN LIMITED",
+        "company_number": "08195008",
+        "candidate_vat": "144026249",
+        "hmrc_registered_name": null,
+        "status": "FALSE_CANDIDATE"
+    },
+    {
+        "company_name": "MASCO CONSTRUCTION LTD",
+        "company_number": "14295095",
+        "candidate_vat": "396533753",
+        "hmrc_registered_name": null,
+        "status": "RATE_LIMITED"
+    },
+    {
+        "company_name": "JESSICA LOUISE LTD",
+        "company_number": "11701885",
+        "candidate_vat": "314849588",
+        "hmrc_registered_name": "JESSICA LOUISE LTD",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "AUTOPARTS4LESS LTD",
+        "company_number": "11807006",
+        "candidate_vat": "316014742",
+        "hmrc_registered_name": null,
+        "status": "FALSE_CANDIDATE"
+    },
+    {
+        "company_name": "ELVASTON ENGINEERING CONSULTING LIMITED",
+        "company_number": "09669597",
+        "candidate_vat": "217017343",
+        "hmrc_registered_name": "ELVASTON ENGINEERING CONSULT ING LIMITED",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "MWE SERVICES LTD",
+        "company_number": "10983337",
+        "candidate_vat": "104567233",
+        "hmrc_registered_name": null,
+        "status": "FALSE_CANDIDATE"
+    },
+    {
+        "company_name": "WCS PUBLISHING LTD",
+        "company_number": "14884729",
+        "candidate_vat": "441309521",
+        "hmrc_registered_name": "WCS PUBLISHING LTD",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "TUODA TRADING LTD",
+        "company_number": "16509461",
+        "candidate_vat": "401121477",
+        "hmrc_registered_name": "SHENZHENSHI FENG TUODA TRADING COMPANY LTD",
+        "status": "FALSE_CANDIDATE"
+    },
+    {
+        "company_name": "PLANT & ENGINE CLEANING SERVICES (ILFORD) LIMITED",
+        "company_number": "00954459",
+        "candidate_vat": "248558033",
+        "hmrc_registered_name": "PLANT & ENGINE CLEANING SERVICES (ILFORD) LIMITED",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "METIER LIMITED",
+        "company_number": "09671240",
+        "candidate_vat": "241426533",
+        "hmrc_registered_name": "METIER LONDON LIMITED",
+        "status": "FALSE_CANDIDATE"
+    },
+    {
+        "company_name": "SMARTLEC (HULL) LIMITED",
+        "company_number": "15127724",
+        "candidate_vat": "467274462",
+        "hmrc_registered_name": "SMARTLEC (HULL) LIMITED",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "PERILLA DINING LTD",
+        "company_number": "09165268",
+        "candidate_vat": "248997042",
+        "hmrc_registered_name": "PERILLA DINING LTD",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "MIKE PARKER CONSULTING LTD",
+        "company_number": "06819395",
+        "candidate_vat": "947554288",
+        "hmrc_registered_name": "MIKE PARKER CONSULTING LTD",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "MIKE FROST CARPETS LIMITED",
+        "company_number": "10120425",
+        "candidate_vat": "239544190",
+        "hmrc_registered_name": "MIKE FROST CARPETS LIMITED",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "OMC CONSTRUCTION LIMITED",
+        "company_number": "08721139",
+        "candidate_vat": "172454900",
+        "hmrc_registered_name": "OMC CONSTRUCTION LIMITED",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "ARCHER INVESTMENTS LIMITED",
+        "company_number": "OE026316",
+        "candidate_vat": "211914343",
+        "hmrc_registered_name": "ARCHER INVESTMENTS LIMITED",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "DAVE DESI LTD",
+        "company_number": "14280286",
+        "candidate_vat": "467864142",
+        "hmrc_registered_name": null,
+        "status": "FALSE_CANDIDATE"
+    },
+    {
+        "company_name": "ROSALYS HOUSE LTD",
+        "company_number": "13118717",
+        "candidate_vat": "383935262",
+        "hmrc_registered_name": null,
+        "status": "FALSE_CANDIDATE"
+    },
+    {
+        "company_name": "HAROON MOTA LTD",
+        "company_number": "14063309",
+        "candidate_vat": "464633283",
+        "hmrc_registered_name": "HAROON MOTA LTD",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "GIGI COSMETIC LABORATORIES LIMITED",
+        "company_number": "01781398",
+        "candidate_vat": "386103162",
+        "hmrc_registered_name": "GIGI COSMETIC LABORATORIES LIMITED",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "RFF LOVERIDGE LTD",
+        "company_number": "12497440",
+        "candidate_vat": "491790120",
+        "hmrc_registered_name": "RFF LOVERIDGE LTD",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "DAWSON CORNWELL LLP",
+        "company_number": "OC441340",
+        "candidate_vat": "233534384",
+        "hmrc_registered_name": "DAWSON CORNWELL LLP",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "GREENWOOD HOMES HOLDING LTD",
+        "company_number": "10631356",
+        "candidate_vat": "305209832",
+        "hmrc_registered_name": "GREENWOOD HOMES HOLDING LTD",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "CHAI THALI LIMITED",
+        "company_number": "10378086",
+        "candidate_vat": "260645314",
+        "hmrc_registered_name": "CHAI THALI LIMITED",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "SM6 LTD",
+        "company_number": "11228222",
+        "candidate_vat": "459052971",
+        "hmrc_registered_name": "SM6 LTD",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "PROSPER BUSINESS DEVELOPMENT LTD",
+        "company_number": "11563158",
+        "candidate_vat": "459843932",
+        "hmrc_registered_name": "PROSPER BUSINESS DEVELOPMENT LTD",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "MALKA LTD",
+        "company_number": "12241417",
+        "candidate_vat": "411903922",
+        "hmrc_registered_name": null,
+        "status": "FALSE_CANDIDATE"
+    },
+    {
+        "company_name": "CULTURAL STYLE WEEK LTD",
+        "company_number": "13758477",
+        "candidate_vat": "401539429",
+        "hmrc_registered_name": "CULTURAL STYLE WEEK LTD",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "ASHWOOD POULTRY LIMITED",
+        "company_number": "10507978",
+        "candidate_vat": "259266275",
+        "hmrc_registered_name": "ASHWOOD POULTRY LIMITED",
+        "status": "MATCH_CONFIRMED"
+    },
+    {
+        "company_name": "EVER GEEEN LIMITED",
+        "company_number": "13310521",
+        "candidate_vat": "408610809",
+        "hmrc_registered_name": null,
+        "status": "RATE_LIMITED"
+    }
+]
