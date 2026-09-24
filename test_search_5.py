@@ -1,7 +1,14 @@
+"""
+One of the earliest exploratory scripts: tries the original (now historical)
+search_candidate_vat and verify_hmrc_vat functions from pipeline.py on 5
+large, well-known companies, to sanity-check the whole discover-then-verify
+idea before scaling it up to the full 300-company sample.
+"""
+
 from pipeline import search_candidate_vat, verify_hmrc_vat
 
-# Companii mari, unde ai confirmat deja manual (Google) că VAT-ul e găsibil
-companii_test = [
+# Large companies, where manual checking (Google) already confirmed the VAT is findable
+test_companies = [
     "British Telecommunications",
     "British Airways",
     "Vodafone",
@@ -9,16 +16,16 @@ companii_test = [
     "BP",
 ]
 
-for nume in companii_test:
-    print(f"\n=== Testez: {nume} ===")
-    candidat = search_candidate_vat(nume)
+for name in test_companies:
+    print(f"\n=== Testing: {name} ===")
+    candidate = search_candidate_vat(name)
 
-    if candidat:
-        print(f"   Candidat găsit: GB{candidat}")
-        nume_hmrc = verify_hmrc_vat(candidat)
-        if nume_hmrc:
-            print(f"   ✅ Confirmat HMRC: {nume_hmrc}")
+    if candidate:
+        print(f"   Candidate found: GB{candidate}")
+        hmrc_name = verify_hmrc_vat(candidate)
+        if hmrc_name:
+            print(f"   Confirmed by HMRC: {hmrc_name}")
         else:
-            print("   ❌ Respins de HMRC")
+            print("   Rejected by HMRC")
     else:
-        print("   ⚪ Niciun candidat găsit")
+        print("   No candidate found")

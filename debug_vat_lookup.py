@@ -1,7 +1,14 @@
 """
-Debug izolat pentru sursa vat-lookup.co.uk.
-Rulează ASTA local (nu în sandbox) - salvează răspunsul brut pe disc
-ca să poți inspecta exact ce se întoarce, nu doar ce spune codul despre el.
+Isolated debug for the vat-lookup.co.uk source.
+Run THIS locally (not in a sandbox) - it saves the raw response to disk so
+you can inspect exactly what comes back, not just what the code says about it.
+
+This is the script that produced the debug_response_1_*.html and
+debug_response_2_*.html files referenced in README.md (Part 1, source 5, and
+Setup): British Telecommunications as the positive control (VAT found
+correctly), and Edelweiss Cheddar Limited showing the site's own "not
+discovered yet" message - the first confirmed evidence that vat-lookup.co.uk
+was working correctly but simply had no data for a small company at the time.
 """
 
 import requests
@@ -9,11 +16,12 @@ from pipeline import is_valid_vat_checksum, HEADERS
 
 URL = "https://vat-lookup.co.uk/verify/search.php"
 
-# O companie mare, deja confirmată manual (Faza 2) că are VAT găsibil ușor,
-# plus 2-3 companii random din eșantionul tău de 300 (copiate din sample_companies.json).
+# A large company, already manually confirmed to have an easily findable VAT,
+# plus 2-3 random companies from the 300-company sample (copied from
+# sample_companies.json).
 TEST_CASES = [
-    "British Telecommunications",   # control pozitiv - ar trebui sa mearga daca sursa functioneaza deloc
-    "EDELWEISS (CHEDDAR) LIMITED",  # inlocuieste cu 2-3 nume reale din sample_companies.json
+    "British Telecommunications",   # positive control - should work if the source works at all
+    "EDELWEISS (CHEDDAR) LIMITED",  # replace with 2-3 real names from sample_companies.json
 ]
 
 BLOCKING_SIGNALS = [
@@ -23,17 +31,17 @@ BLOCKING_SIGNALS = [
 
 
 def debug_one(company_name: str, idx: int):
-    print(f"\n{'=' * 60}\nTestez: {company_name}\n{'=' * 60}")
+    print(f"\n{'=' * 60}\nTesting: {company_name}\n{'=' * 60}")
 
-    # 1. Cerere fara header custom - vezi daca User-Agent-ul conteaza
-    for label, headers in [("CU HEADERS", HEADERS), ("FARA HEADERS", {})]:
+    # 1. Request without custom headers - see if the User-Agent matters
+    for label, headers in [("WITH HEADERS", HEADERS), ("WITHOUT HEADERS", {})]:
         try:
             res = requests.post(
                 URL, data={"CompanyName": company_name},
                 headers=headers, timeout=10, allow_redirects=True,
             )
         except Exception as e:
-            print(f"  [{label}] EROARE cerere: {e}")
+            print(f"  [{label}] request ERROR: {e}")
             continue
 
         body_lower = res.text.lower()
@@ -42,20 +50,20 @@ def debug_one(company_name: str, idx: int):
         valid_checksums = [m for m in gb_matches if is_valid_vat_checksum(m)]
 
         print(f"  [{label}]")
-        print(f"    status_code      : {res.status_code}")
-        print(f"    url final        : {res.url}")
-        print(f"    content-type     : {res.headers.get('content-type')}")
-        print(f"    lungime raspuns  : {len(res.text)} caractere")
-        print(f"    semnale blocare  : {signals or 'niciunul detectat'}")
-        print(f"    contine 'Sorry'  : {'Sorry' in res.text}")
-        print(f"    GB+9cifre gasite : {gb_matches}")
-        print(f"    valid checksum   : {valid_checksums}")
+        print(f"    status_code       : {res.status_code}")
+        print(f"    final url         : {res.url}")
+        print(f"    content-type      : {res.headers.get('content-type')}")
+        print(f"    response length   : {len(res.text)} characters")
+        print(f"    blocking signals  : {signals or 'none detected'}")
+        print(f"    contains 'Sorry'  : {'Sorry' in res.text}")
+        print(f"    GB+9digits found  : {gb_matches}")
+        print(f"    valid checksum    : {valid_checksums}")
 
-        # Salvezi raspunsul brut ca sa te uiti direct in el
+        # save the raw response so you can look directly inside it
         fname = f"debug_response_{idx}_{label.replace(' ', '_')}.html"
         with open(fname, "w", encoding="utf-8") as f:
             f.write(res.text)
-        print(f"    salvat in        : {fname}  <- deschide-l in browser sau editor")
+        print(f"    saved to          : {fname}  <- open it in a browser or editor")
 
 
 if __name__ == "__main__":
@@ -63,13 +71,14 @@ if __name__ == "__main__":
         debug_one(name, i)
 
     print(
-        "\n\nCum interpretezi rezultatul:\n"
-        "- Daca British Telecommunications da GB+9cifre valide, dar compania random nu -> "
-        "sursa chiar nu acopera companii mici (dead-end real, documentezi cu cifre).\n"
-        "- Daca NICIUNA nu da nimic, dar lungimea raspunsului e mica/suspecta sau apar "
-        "semnale de blocare -> esti blocat, nu ai un rezultat real inca. Incearca de pe alta retea "
-        "(alt IP), cu delay mai mare intre cereri, sau verifica manual in browser daca formularul "
-        "mai e la fel.\n"
-        "- Deschide fisierele .html salvate - daca arata ca o pagina de eroare generica sau un "
-        "ecran gol, e semn clar de blocare, nu de 'lipsa date'.\n"
+        "\n\nHow to read the result:\n"
+        "- If British Telecommunications returns valid GB+9digits, but the random "
+        "company doesn't -> the source genuinely does not cover small companies "
+        "(a real dead end, document it with numbers).\n"
+        "- If NEITHER returns anything, but the response length is small/suspicious "
+        "or blocking signals appear -> you are blocked, this is not a real result yet. "
+        "Try from a different network (a different IP), with a longer delay between "
+        "requests, or check manually in a browser whether the form is still the same.\n"
+        "- Open the saved .html files - if they look like a generic error page or a "
+        "blank screen, that is a clear sign of blocking, not of 'no data'.\n"
     )

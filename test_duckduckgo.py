@@ -1,3 +1,12 @@
+"""
+The very first, simplest test of DuckDuckGo's HTML search - just one query,
+to see what a raw response looks like before building anything more
+automated around it. This came before ddg_pipeline.py and
+debug_ddg_pipeline.py, which is where the actual 25-company test and the
+202-status blocking finding described in README.md (Part 1, source 1) come
+from.
+"""
+
 import requests
 
 HEADERS = {
@@ -10,5 +19,5 @@ url = f"https://html.duckduckgo.com/html/?q={requests.utils.quote('British Telec
 res = requests.get(url, headers=HEADERS, timeout=8)
 
 print(f"Status: {res.status_code}")
-print(f"Lungime raspuns: {len(res.text)} caractere")
+print(f"Response length: {len(res.text)} characters")
 print(res.text[:2000])

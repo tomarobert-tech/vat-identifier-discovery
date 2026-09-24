@@ -1,3 +1,19 @@
+"""
+main.py
+
+The very first working version of the HMRC verification flow, built before
+pipeline.py and pipeline_fixed.py existed. This is where the session/CSRF flow
+and the exact form field names (`target`, `requester`) were first figured out,
+by watching real requests in the browser's Network tab (see README, Technical
+Foundations, point 2).
+
+This script parses the result page differently from what the final pipeline
+uses: it reads values from HTML headings (`h3.govuk-heading-s`) rather than
+searching the page text with a regex (pipeline.py) or checking the response
+URL (pipeline_fixed.py). Kept as-is, as the first working proof that
+verification could be automated at all - not used by the final pipeline.
+"""
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -5,16 +21,17 @@ BASE_URL = "https://www.tax.service.gov.uk/check-vat-number/enter-vat-details"
 
 
 def extract_vat_result(soup):
-    """Extrage câmpurile dintr-o pagină de rezultat VAT bazată pe structura govuk-heading-s."""
+    """Extracts the fields from a VAT result page, based on the
+    govuk-heading-s structure."""
     result = {}
 
-    # Căutăm toate titlurile h3 care au clasa 'govuk-heading-s'
+    # find every h3 heading with the 'govuk-heading-s' class
     headings = soup.find_all("h3", class_="govuk-heading-s")
 
     for heading in headings:
         key = heading.get_text(strip=True)
 
-        # Valoarea se află în următorul element frate (sibling), de obicei un <p> sau <div>
+        # the value sits in the next sibling element, usually a <p> or <div>
         next_elem = heading.find_next_sibling()
         if next_elem:
             value = next_elem.get_text(separator=" ", strip=True)
@@ -26,7 +43,7 @@ def extract_vat_result(soup):
 def check_vat_number_public(vat_number: str):
     session = requests.Session()
 
-    # Pasul 1: GET — setează cookie-ul de sesiune și ne dă csrfToken-ul
+    # Step 1: GET - sets the session cookie and gives us the csrfToken
     response_get = session.get(BASE_URL)
     soup = BeautifulSoup(response_get.text, "html.parser")
 
@@ -34,23 +51,23 @@ def check_vat_number_public(vat_number: str):
     csrf_token = csrf_input["value"] if csrf_input else None
 
     if not csrf_token:
-        print("Nu am găsit csrfToken în pagină")
+        print("Could not find csrfToken on the page")
         return None
 
-    # Pasul 2: POST cu cele 3 câmpuri reale găsite de tine
+    # Step 2: POST with the 3 real fields found in the browser's Network tab
     payload = {
         "csrfToken": csrf_token,
         "target": vat_number,
-        "requester": "",  # gol — nu solicităm dovadă de verificare
+        "requester": "",  # left empty - not requesting proof of verification
     }
     response_post = session.post(BASE_URL, data=payload)
 
-    # Pasul 3: parsăm pagina de rezultat și apelăm funcția dedicată (exact ca în cerință)
+    # Step 3: parse the result page
     result_soup = BeautifulSoup(response_post.text, "html.parser")
-    date_extrase = extract_vat_result(result_soup)
+    extracted_data = extract_vat_result(result_soup)
 
-    print(date_extrase)
-    return date_extrase
+    print(extracted_data)
+    return extracted_data
 
 
 if __name__ == "__main__":

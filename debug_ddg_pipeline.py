@@ -1,7 +1,12 @@
 """
-Debug pentru 0/25 - ruleaza pe doar 5 companii, dar iti arata FIECARE pas:
-cate linkuri a gasit cautarea DDG, ce status a avut fiecare pagina cand a
-incercat sa o deschida, si daca a gasit vreun pattern VAT pe ea.
+Debug for the 0/25 result from ddg_pipeline.py - runs on just 5 companies, but
+shows EVERY step: how many links the DDG search found, what status each page
+gave when opened, and whether any VAT pattern was found on it.
+
+This is the exact script that produced the "5 more companies... identical 202
+status on every single query" finding described in README.md (Part 1,
+source 1) - the evidence that DuckDuckGo was blocking automated requests,
+not returning a genuine "nothing found" result.
 """
 
 import json
@@ -17,21 +22,21 @@ for comp in companies:
     print(f"\n{'=' * 60}\n{name}\n{'=' * 60}")
 
     urls = ddg_search_urls(f'"{name}" VAT number')
-    print(f"Linkuri gasite de cautare: {len(urls)}")
+    print(f"Links found by search: {len(urls)}")
     for u in urls:
         print(f"  - {u}")
 
     if not urls:
-        print("  -> NICIUN LINK - problema e la cautarea DDG insasi, nu la paginile ulterioare")
+        print("  -> NO LINKS - the problem is the DDG search itself, not the pages after it")
 
     for url in urls:
         try:
             res = requests.get(url, headers=HEADERS, timeout=10)
             has_vat = bool(VAT_NEAR_PATTERN.search(res.text) or VAT_ANY_PATTERN.search(res.text))
             print(f"  fetch {url[:60]}... -> status {res.status_code}, "
-                  f"lungime {len(res.text)}, pattern VAT gasit: {has_vat}")
+                  f"length {len(res.text)}, VAT pattern found: {has_vat}")
         except Exception as e:
-            print(f"  fetch {url[:60]}... -> EROARE: {e}")
+            print(f"  fetch {url[:60]}... -> ERROR: {e}")
         time.sleep(1)
 
     time.sleep(2)

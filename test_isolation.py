@@ -1,9 +1,13 @@
+"""
+An early, standalone test combining the checksum check and the HMRC
+verification flow in one script, before they were merged into pipeline.py.
+Tests both on British Telecommunications' known VAT number (GB245719348) as
+a sanity check that the whole chain works end to end.
+"""
+
 import re
-import urllib3
 import requests
 from bs4 import BeautifulSoup
-
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
@@ -11,9 +15,9 @@ HEADERS = {
     "Accept-Language": "en-US,en;q=0.5",
 }
 
-# --- 1. VALIDARE MATEMATICĂ (MODULUS 97) ---
+# --- 1. MATH VALIDATION (MODULUS 97) ---
 def is_valid_vat_checksum(vat_digits: str) -> bool:
-    """Validează checksum-ul unui VAT UK (9 cifre), algoritmul modulus 97."""
+    """Validates the checksum of a UK VAT number (9 digits), modulus 97 algorithm."""
     if len(vat_digits) != 9 or not vat_digits.isdigit():
         return False
     weights = [8, 7, 6, 5, 4, 3, 2]
@@ -26,15 +30,15 @@ def is_valid_vat_checksum(vat_digits: str) -> bool:
     return check_digits in (check_old, check_new)
 
 
-# --- 2. VERIFICARE OFICIALĂ HMRC (VALIDATĂ) ---
+# --- 2. OFFICIAL HMRC VERIFICATION (VALIDATED) ---
 def verify_hmrc_vat_robust(vat_number):
-    """Verifică un număr de VAT prin HMRC folosind fluxul complet cu sesiune + CSRF + parametrul 'target'."""
+    """Verifies a VAT number through HMRC using the full session + CSRF + 'target' flow."""
     session = requests.Session()
     session.headers.update(HEADERS)
     start_url = "https://www.tax.service.gov.uk/check-vat-number/enter-vat-details"
 
     try:
-        # Pasul 1: Preluare CSRF Token
+        # Step 1: get the CSRF token
         res_init = session.get(start_url, timeout=10)
         if res_init.status_code != 200:
             return None
@@ -46,7 +50,7 @@ def verify_hmrc_vat_robust(vat_number):
 
         csrf_token = csrf_input.get("value")
 
-        # Pasul 2: Trimitere POST cu parametrul 'target'
+        # Step 2: send the POST with the 'target' field
         payload = {
             "csrfToken": csrf_token,
             "target": str(vat_number),
@@ -57,7 +61,7 @@ def verify_hmrc_vat_robust(vat_number):
             start_url, data=payload, timeout=10, allow_redirects=True
         )
 
-        # Pasul 3: Extragere nume prin Regex pe Textul Curățat
+        # Step 3: extract the name with regex, on the cleaned text
         if res_post.status_code == 200:
             soup_res = BeautifulSoup(res_post.text, "html.parser")
             text_clean = " ".join(soup_res.get_text().split())
@@ -74,19 +78,19 @@ def verify_hmrc_vat_robust(vat_number):
                 return "VALID_VAT_CONFIRMED"
 
     except Exception as e:
-        print(f"Eroare verificare HMRC: {e}")
+        print(f"HMRC verification error: {e}")
 
     return None
 
 
 if __name__ == "__main__":
-    print("=== TESTARE IZOLATĂ REPARATĂ ===")
+    print("=== ISOLATED TEST (FIXED) ===")
 
     # Test 0: Modulus 97 Checksum
     bt_vat = "245719348"
     print(f"0. Checksum Modulus 97 for {bt_vat}: {is_valid_vat_checksum(bt_vat)}")
 
     # Test 1: HMRC Verification
-    print("\n--- Test 1: HMRC Verification (Sesiune + CSRF + Regex Parser) ---")
+    print("\n--- Test 1: HMRC Verification (Session + CSRF + Regex Parser) ---")
     hmrc_res = verify_hmrc_vat_robust(bt_vat)
-    print(f"Rezultat HMRC pentru {bt_vat}: '{hmrc_res}'")
+    print(f"HMRC result for {bt_vat}: '{hmrc_res}'")

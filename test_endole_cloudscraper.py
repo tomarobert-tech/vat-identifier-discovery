@@ -1,7 +1,12 @@
 """
-PASUL 1 - incearca sa treci de Cloudflare pe Endole cu cloudscraper.
-Ruleaza asta INTAI, pe putine companii, ca sa vezi rapid daca merita continuat.
-Daca in 10-15 minute tot iei 403/challenge, abandonezi si treci la Pasul 2 (DuckDuckGo).
+STEP 1 - tries to get past Endole's Cloudflare protection using cloudscraper.
+Run this FIRST, on just a few companies, to quickly see whether it is worth
+continuing. If it still gives 403/challenge after 10-15 minutes, abandon this
+and move to Step 2 (DuckDuckGo).
+
+This is the script behind the "also tried cloudscraper... and still got
+blocked every time" finding in README.md (Part 1, source 6) - confirming the
+Cloudflare block was not just a plain-`requests` problem.
 
 pip install cloudscraper
 """
@@ -13,9 +18,9 @@ from verify_helper import verify_candidate
 
 scraper = cloudscraper.create_scraper()
 
-# Testezi intai doar pe astea 3 - una unde STII ca exista VAT (control), doua din esantion
+# Test first on just these 3 - one where we KNOW a VAT exists (control), two from the sample
 TEST_CASES = [
-    ("09905931", "Ineo Nuclear UK Ltd"),   # control pozitiv - stim ca are VAT: GB365998427
+    ("09905931", "Ineo Nuclear UK Ltd"),   # positive control - known VAT: GB365998427
     ("04169780", "Globe UK Holding Ltd"),
     ("13547774", "Ozero Tech Ltd"),
 ]
@@ -25,22 +30,22 @@ for number, name in TEST_CASES:
     try:
         res = scraper.get(url, timeout=15)
     except Exception as e:
-        print(f"{name}: EROARE - {e}")
+        print(f"{name}: ERROR - {e}")
         continue
 
     print(f"\n{name}")
     print(f"  status: {res.status_code}")
-    print(f"  lungime: {len(res.text)}")
+    print(f"  length: {len(res.text)}")
 
     if res.status_code == 200:
         match = VAT_PATTERN.search(res.text)
         if match:
             candidate = match.group(1)
             r = verify_candidate(candidate, name, "endole-cloudscraper")
-            print(f"  CANDIDAT GASIT: {candidate} -> {r['verdict']}")
+            print(f"  CANDIDATE FOUND: {candidate} -> {r['verdict']}")
         else:
-            print("  200 OK, dar niciun VAT Number gasit pe pagina")
+            print("  200 OK, but no VAT Number found on the page")
     else:
-        print(f"  Tot blocat (status {res.status_code}) - cloudscraper n-a rezolvat problema")
+        print(f"  Still blocked (status {res.status_code}) - cloudscraper did not solve it")
 
     time.sleep(2)

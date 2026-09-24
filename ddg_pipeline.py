@@ -1,11 +1,17 @@
 """
-PASUL 2 - automatizeaza exact ce ai facut manual pentru Ineo Nuclear:
-cauti "<nume companie> VAT number" pe DuckDuckGo, deschizi primele cateva rezultate,
-cauti un pattern VAT pe pagina, verifici prin verify_helper.
+STEP 2 of the DuckDuckGo attempt - automates exactly what was done manually for
+Ineo Nuclear: search "<company name> VAT number" on DuckDuckGo, open the first
+few results, look for a VAT pattern on the page, verify with verify_helper.
 
-Ruleaza INTAI cu TEST_SIZE mic (20-30) ca sa vezi rata de succes reala inainte
-sa pornesti pe toate cele 300 - dureaza mult (fiecare companie = 1 cautare + pana la
-3 fetch-uri de pagina, cu delay-uri).
+This is the script that produced the 25-company test described in README.md
+(Part 1, source 1): 0 candidates found, every search request returned an
+unusual HTTP status (202) instead of a normal results page - a sign of
+blocking, not of a genuine "no data" result (see debug_ddg_pipeline.py for the
+follow-up that confirmed this). Not part of the final pipeline.
+
+Run first with a small TEST_SIZE (20-30) to see the real success rate before
+running on all 300 - it takes a while (each company = 1 search + up to 3 page
+fetches, with delays).
 """
 
 import json
@@ -17,9 +23,9 @@ from verify_helper import verify_candidate
 
 INPUT_SAMPLE = "sample_companies.json"
 OUTPUT_RESULTS = "ddg_pipeline_results.json"
-TEST_SIZE = 25          # incepe mic
-MAX_RESULTS_PER_COMPANY = 3   # cate linkuri din cautare incerci per companie
-REQUEST_DELAY = 2       # secunde intre cereri - nu grabi
+TEST_SIZE = 25          # start small
+MAX_RESULTS_PER_COMPANY = 3   # how many search links to try per company
+REQUEST_DELAY = 2       # seconds between requests - do not rush
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -32,16 +38,16 @@ VAT_ANY_PATTERN = re.compile(r"\bGB\s?(\d{9})\b")
 
 
 def ddg_search_urls(query: str) -> list:
-    """Cauta pe DuckDuckGo HTML si intoarce linkurile din rezultate (cele organice)."""
+    """Searches DuckDuckGo HTML and returns the organic result links."""
     url = f"https://html.duckduckgo.com/html/?q={requests.utils.quote(query)}"
     try:
         res = requests.get(url, headers=HEADERS, timeout=10)
     except Exception as e:
-        print(f"   [DEBUG] eroare cautare: {e}")
+        print(f"   [DEBUG] search error: {e}")
         return []
 
     if res.status_code != 200:
-        print(f"   [DEBUG] status cautare: {res.status_code}")
+        print(f"   [DEBUG] search status: {res.status_code}")
         return []
 
     soup = BeautifulSoup(res.text, "html.parser")
@@ -54,8 +60,9 @@ def ddg_search_urls(query: str) -> list:
 
 
 def scan_page_for_vat(url: str):
-    """Deschide o pagina si cauta un pattern VAT. Prefera pattern-ul 'VAT ... GB123456789'
-    (mai sigur), cade pe orice GB+9cifre doar daca nu gaseste nimic mai specific."""
+    """Opens a page and looks for a VAT pattern. Prefers the 'VAT ... GB123456789'
+    pattern (safer), falls back to any GB+9digits only if nothing more specific
+    is found."""
     try:
         res = requests.get(url, headers=HEADERS, timeout=10)
     except Exception:
@@ -101,15 +108,15 @@ def run_pipeline():
             time.sleep(REQUEST_DELAY)
 
         if not candidate:
-            print("   niciun candidat gasit")
+            print("   no candidate found")
             results.append({**comp, "candidate_vat": None, "verdict": "NO_CANDIDATE"})
             continue
 
         coverage += 1
         r = verify_candidate(candidate, name, "duckduckgo-scan")
         r["source_url"] = source_url
-        print(f"   candidat: {candidate} -> {r['verdict']} "
-              f"(HMRC: '{r['hmrc_name']}', similaritate: {r['name_similarity']})")
+        print(f"   candidate: {candidate} -> {r['verdict']} "
+              f"(HMRC: '{r['hmrc_name']}', similarity: {r['name_similarity']})")
 
         if r["verdict"] == "MATCH":
             matches += 1
@@ -118,16 +125,16 @@ def run_pipeline():
 
         results.append({**comp, **r})
 
-        # salvezi incremental, ca sa nu pierzi tot daca pica ceva la jumatate
+        # saved incrementally, so nothing is lost if something fails halfway
         with open(OUTPUT_RESULTS, "w", encoding="utf-8") as f:
             json.dump(results, f, indent=4, ensure_ascii=False)
 
     total = len(companies)
     print(f"\n{'=' * 50}")
-    print(f"Total testate           : {total}")
-    print(f"Coverage (candidat gasit): {coverage}/{total} ({100 * coverage / total:.1f}%)")
-    print(f"Match confirmat          : {matches}")
-    print(f"Fals-pozitiv             : {false_positives}")
+    print(f"Total tested            : {total}")
+    print(f"Coverage (candidate found): {coverage}/{total} ({100 * coverage / total:.1f}%)")
+    print(f"Confirmed match          : {matches}")
+    print(f"False positive           : {false_positives}")
     print(f"{'=' * 50}")
 
 
