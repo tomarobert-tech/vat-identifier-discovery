@@ -381,6 +381,19 @@ differently by their search, but this was not tested further.
 
 ### Cost Considerations
 
+Real resources fix an *access* problem, not the underlying *data* problem. Money
+and infrastructure can get past Cloudflare, avoid rate limits, and license
+commercial sources — genuinely raising coverage above the 15.7% this project found
+with one free source, especially by combining several sources that likely cover
+different slices of companies (Endole looked stronger for established companies;
+vat-lookup.co.uk's coverage keeps growing over time). But the ceiling described in
+Part 1 does not move just because there is a budget: a company with no website, no
+international trade, and no listing anywhere is still invisible, no matter how
+much infrastructure is thrown at reaching it. Accuracy is a separate question from
+coverage — the false positive rate (Part 2) is about matching correctly, not about
+finding more candidates, and more resources do not automatically fix that; the
+name-comparison and audit steps still have to be there regardless of scale.
+
 The real cost of this project is not developer time — it is the cost of dealing
 with the protections that sources put up once you go past a small, manual scale.
 
@@ -430,7 +443,8 @@ about accuracy.
 The free path costs nothing in money, but its real cost is unpredictable delay,
 not currency — exactly what this project ran into directly.
 
-**Human audit** (catching cases like Umberslade, Tuoda Trading, and Metier, where a
+**Human audit** (an annotation team, in the brief's terms — catching cases like
+Umberslade, Tuoda Trading, and Metier, where a
 valid VAT number belongs to the wrong company): assuming a random 10% of confirmed
 matches get checked by hand, at around 2 minutes each, and roughly £15–20/hour for
 a junior analyst: `0.10 × (2/60 hour) × £15–20 = £0.05–£0.07 per company`, averaged
@@ -468,6 +482,13 @@ This means the real throughput ceiling for a production version of this project 
 not "how many companies can be searched," but **"how many verifications can
 actually be completed per day,"** which is a much smaller number and needs to be
 planned around from the start, not discovered by accident like it was here.
+
+A cluster on its own would not fix this, and could make it worse. Running the same
+discovery and verification logic in parallel across many machines, from a small
+number of IP addresses, would hit these same rate limits *faster*, not later. A
+cluster only helps once it is paired with real IP diversity (proxy infrastructure,
+ideally rotating) — compute is not the constraint here, distinct outbound
+identities are.
 
 ### Monitoring
 
